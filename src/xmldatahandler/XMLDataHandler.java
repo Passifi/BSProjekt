@@ -11,34 +11,40 @@ import java.util.ArrayList;
  */
 public class XMLDataHandler {
     
-    public void walkNode(Node n) {
+    public String walkNode(Node n) {
+        String resultString = "";
         for(int i=0; i<n.nodes.size();i++)
         {
             
-            System.out.println("<" + n.nodes.get(i).GetName()+">");
-            System.out.println(n.nodes.get(i).GetValue());
+            resultString += "<" + n.nodes.get(i).GetName()+">\n";
+            resultString += n.nodes.get(i).GetValue() + "\n";
 
-            walkNode(n.nodes.get(i));
-            System.out.println("</" + n.nodes.get(i).GetName()+">");
-        }
-    }
-    
-    public void walkNodeJSON(Node n) {
-        for(int i=0; i<n.nodes.size();i++)
-        {
-            
-            System.out.println(n.nodes.get(i).GetName() + ": "); 
-            System.out.println(n.nodes.get(i).GetValue());
-            if(n.nodes.get(i).nodes.size() > 0)
-            {
-                System.out.println("{");
-                walkNodeJSON(n.nodes.get(i));
-                System.out.println("}");
-            }
-            if(i != n.nodes.size()-1)
-                System.out.println(",");
+            resultString += walkNode(n.nodes.get(i));
+            resultString += "</" + n.nodes.get(i).GetName()+">\n";
         }
         
+        return resultString;
+    }
+    
+    public String walkNodeJSON(Node n) {
+        
+        String resStr = "";
+        for(int i=0; i<n.nodes.size();i++)
+        {
+            
+            resStr += '"' + n.nodes.get(i).GetName() +'"' + ":"; 
+            if(n.nodes.get(i).GetValue().length() > 0)
+                resStr += '"' + n.nodes.get(i).GetValue().replace("\n","") + '"';
+            if(n.nodes.get(i).nodes.size() > 0)
+            {
+                resStr += "{\n";
+                resStr += walkNodeJSON(n.nodes.get(i));
+                resStr += "}\n";
+            }
+            if(i != n.nodes.size()-1)
+                resStr += ",\n";
+        }
+        return resStr;
     }
     
     public ArrayList<Node> findRows(Node n, String rowKey)
@@ -154,11 +160,33 @@ public class XMLDataHandler {
         
         ArrayList<Node> nodes = xml.findEntry(n.nodes.get(0),"First Name", "Indiana");
         nodes.get(0).nodes.get(0).setValue("Jack");
-        xml.walkNode(n);
-        xml.walkNodeJSON(n);
+        
+        
+        
+        try {
+      FileWriter myWriter = new FileWriter("./test.xml");
+      myWriter.write(xml.walkNode(n.nodes.get(0)));
+      myWriter.close();
+      System.out.println("Successfully wrote to the file.");
+    } catch (IOException e) {
+      System.out.println("An error occurred.");
+      e.printStackTrace();
+    }
+  
+    try {
+      FileWriter myWriter = new FileWriter("./test.json");
+      myWriter.write("{" + xml.walkNodeJSON(n.nodes.get(0)) + "}");
+      myWriter.close();
+      System.out.println("Successfully wrote to the file.");
+    } catch (IOException e) {
+      System.out.println("An error occurred.");
+      e.printStackTrace();
+    }
+  }
+        //xml.walkNodeJSON(n);
         
     }
     
     
     
-}
+
